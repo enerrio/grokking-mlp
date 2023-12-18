@@ -32,3 +32,6 @@ Log Loss Plot from exp2 run:
 
 Log Accuracy Plot from exp2 run:
 ![Exp2: Log Accuracy Plot](exp2/acclog.png "Log Accuracy Plot")
+
+Plot of embedding weights after dimensionality reduction from exp2 run:
+![Exp2: Embed weights](exp2/wts_dimred_embed.png "Embed Weights Plot")
