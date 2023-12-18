@@ -2,8 +2,9 @@ experiment_name: exp2
 data:
   p: 97
   operation: +
+  use_mask: False
 model:
-  num_epochs: 10_000
+  num_epochs: 20_000
   batch_size: 512
 optim:
   lr: 1.e-3
