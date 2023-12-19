@@ -28,10 +28,10 @@ def create_dataloader(features, labels, batch_size, mask=None):
     # Split into train/val sets
     rng = torch.Generator().manual_seed(21)
 
-    if mask:
+    if isinstance(mask, torch.Tensor):
         # Split data based on provided mask
-        train_data = TensorDataset(features[mask], labels[~mask])
-        val_data = TensorDataset(features[~mask], labels[mask])
+        train_data = TensorDataset(features[mask], labels[mask])
+        val_data = TensorDataset(features[~mask], labels[~mask])
 
     else:
         # Create train and val set randomly
