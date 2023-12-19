@@ -31,7 +31,7 @@ def main():
     mask = None
     if config["data"]["use_mask"]:
         y = y_ohe.argmax(-1)
-        mask = (y == 1) | (y == 2)
+        mask = y < 20
     train_dataloader, val_dataloader = create_dataloader(
         features, y_ohe, config["model"]["batch_size"], mask
     )
