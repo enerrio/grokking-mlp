@@ -2,27 +2,75 @@ import os
 import numpy as np
 import plotly.graph_objects as go
 
+TRAIN_LINE_COLOR = "rgb(101,110,242)"
+TRAIN_FILL_COLOR = "rgba(101,110,242,0.2)"
+VAL_LINE_COLOR = "rgb(221,96,70)"
+VAL_FILL_COLOR = "rgba(221,96,70,0.2)"
+CLEAR_LINE_COLOR = "rgba(255,255,255,0)"
+
 
 def plot_train_results(train_stats, save, save_path):
     """Plot the loss curve and accuracy for a training run"""
-    # Plot loss curve
+    # Calculate loss mean and standard deviation
+    stacked_train_losses = np.stack(
+        [train_stats[seed]["epoch_train_losses"] for seed in train_stats]
+    )
+    stacked_val_losses = np.stack(
+        [train_stats[seed]["epoch_val_losses"] for seed in train_stats]
+    )
+    mean_train_loss = np.mean(stacked_train_losses, axis=0)
+    std_train_loss = np.std(stacked_train_losses, axis=0)
+    mean_val_loss = np.mean(stacked_val_losses, axis=0)
+    std_val_loss = np.std(stacked_val_losses, axis=0)
+    epochs = np.arange(stacked_train_losses.shape[-1])
+
     fig_loss = go.Figure()
+
+    # Add loss confidence interval areas
     fig_loss.add_scatter(
-        x=np.arange(len(train_stats["epoch_train_losses"])),
-        y=train_stats["epoch_train_losses"],
+        x=np.concatenate([epochs, epochs[::-1]]),
+        y=np.concatenate(
+            [mean_train_loss - std_train_loss, (mean_train_loss + std_train_loss)[::-1]]
+        ).clip(
+            0
+        ),  # clip loss to 0
+        fill="toself",
+        fillcolor=TRAIN_FILL_COLOR,
+        line=dict(color=CLEAR_LINE_COLOR),
+        name="Train Confidence Interval",
+    )
+    fig_loss.add_scatter(
+        x=np.concatenate([epochs, epochs[::-1]]),
+        y=np.concatenate(
+            [mean_val_loss - std_val_loss, (mean_val_loss + std_val_loss)[::-1]]
+        ).clip(
+            0
+        ),  # clip loss to 0
+        fill="toself",
+        fillcolor=VAL_FILL_COLOR,
+        line=dict(color=CLEAR_LINE_COLOR),
+        name="Val Confidence Interval",
+    )
+    # Plot mean loss curve
+    fig_loss.add_scatter(
+        x=epochs,
+        y=mean_train_loss,
+        marker=dict(color=TRAIN_LINE_COLOR),
         name="Train Loss",
     )
     fig_loss.add_scatter(
-        x=np.arange(len(train_stats["epoch_val_losses"])),
-        y=train_stats["epoch_val_losses"],
+        x=epochs,
+        y=mean_val_loss,
+        marker=dict(color=VAL_LINE_COLOR),
         name="Val Loss",
     )
-    # TODO: TEST
-    fig_loss.add_scatter(
-        x=np.arange(len(train_stats["epoch_layer_norm"])),
-        y=train_stats["epoch_layer_norm"],
-        name="Output layer norm",
-    )
+
+    # TODO: TEST plotting layer norm
+    # fig_loss.add_scatter(
+    #     x=np.arange(len(train_stats["epoch_layer_norm"])),
+    #     y=train_stats["epoch_layer_norm"],
+    #     name="Output layer norm",
+    # )
     # Add buttons for scaling axis
     updatemenus_loss = [
         dict(
@@ -45,36 +93,81 @@ def plot_train_results(train_stats, save, save_path):
             showactive=True,
             x=0.01,
             xanchor="left",
-            y=1.1,
+            y=1.08,
             yanchor="top",
         )
     ]
     fig_loss.update_layout(
         height=700,
         width=1000,
-        title_text="Loss Curve",
+        title_text="Mean Loss Curve with Confidence Interval",
         title_x=0.5,
         xaxis_title_text="epoch",
         yaxis_title_text="loss",
     )
 
-    # Plot accuracy
+    # Calculate loss mean and standard deviation
+    stacked_train_accs = np.stack(
+        [train_stats[seed]["epoch_train_accs"] for seed in train_stats]
+    )
+    stacked_val_accs = np.stack(
+        [train_stats[seed]["epoch_val_accs"] for seed in train_stats]
+    )
+    mean_train_acc = np.mean(stacked_train_accs, axis=0)
+    std_train_acc = np.std(stacked_train_accs, axis=0)
+    mean_val_acc = np.mean(stacked_val_accs, axis=0)
+    std_val_acc = np.std(stacked_val_accs, axis=0)
+
     fig_acc = go.Figure()
+
+    # Add accuracy confidence interval areas
     fig_acc.add_scatter(
-        x=np.arange(len(train_stats["epoch_train_accs"])),
-        y=train_stats["epoch_train_accs"],
+        x=np.concatenate([epochs, epochs[::-1]]),
+        y=np.concatenate(
+            [mean_train_acc - std_train_acc, (mean_train_acc + std_train_acc)[::-1]]
+        ),
+        # ).clip(
+        #     0, 100
+        # ),
+        fill="toself",
+        fillcolor=TRAIN_FILL_COLOR,
+        line=dict(color=CLEAR_LINE_COLOR),
+        name="Train Confidence Interval",
+    )
+    fig_acc.add_scatter(
+        x=np.concatenate([epochs, epochs[::-1]]),
+        y=np.concatenate(
+            [mean_val_acc - std_val_acc, (mean_val_acc + std_val_acc)[::-1]]
+        ),
+        # ).clip(
+        #     0, 100
+        # ),
+        fill="toself",
+        fillcolor=VAL_FILL_COLOR,
+        line=dict(color=CLEAR_LINE_COLOR),
+        name="Val Confidence Interval",
+    )
+
+    # Plot accuracy
+    fig_acc.add_scatter(
+        x=epochs,
+        y=mean_train_acc,
+        marker=dict(color=TRAIN_LINE_COLOR),
         name="Train Accuracy",
     )
     fig_acc.add_scatter(
-        x=np.arange(len(train_stats["epoch_val_accs"])),
-        y=train_stats["epoch_val_accs"],
+        x=epochs,
+        y=mean_val_acc,
+        marker=dict(color=VAL_LINE_COLOR),
         name="Val Accuracy",
     )
-    fig_acc.add_scatter(
-        x=np.arange(len(train_stats["epoch_layer_norm"])),
-        y=train_stats["epoch_layer_norm"],
-        name="Output layer norm",
-    )
+
+    # TODO: test plotting layer norm
+    # fig_acc.add_scatter(
+    #     x=np.arange(len(train_stats["epoch_layer_norm"])),
+    #     y=train_stats["epoch_layer_norm"],
+    #     name="Output layer norm",
+    # )
     # Add buttons for scaling axis
     updatemenus_acc = [
         dict(
@@ -97,7 +190,7 @@ def plot_train_results(train_stats, save, save_path):
             showactive=True,
             x=0.01,
             xanchor="left",
-            y=1.1,
+            y=1.08,
             yanchor="top",
         )
     ]
@@ -105,7 +198,7 @@ def plot_train_results(train_stats, save, save_path):
     fig_acc.update_layout(
         height=700,
         width=1000,
-        title_text="Training Accuracy",
+        title_text="Mean Accuracy with Confidence Interval",
         title_x=0.5,
         xaxis_title_text="epoch",
         yaxis_title_text="accuracy",
@@ -177,7 +270,7 @@ def plot_weights(
             showactive=True,
             x=0.01,
             xanchor="left",
-            y=1.1,
+            y=1.08,
             yanchor="top",
         )
     ]
