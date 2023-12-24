@@ -1,11 +1,14 @@
-experiment_name: exp2
+experiment_name: exp4
+device: cpu
 data:
   p: 97
   operation: +
   use_mask: False
+  random_seeds: [21, 5, 10, 30, 42]
 model:
   num_epochs: 20_000
   batch_size: 512
+  log_epoch: 200 # log train stats every X epoch
 optim:
   lr: 1.e-3
   betas: [0.9, 0.98]
