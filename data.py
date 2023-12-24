@@ -23,10 +23,21 @@ def create_data(p, operation):
     return features, y_ohe, char2idx, idx2char
 
 
-def create_dataloader(features, labels, batch_size, mask=None):
-    """Split into train/val sets and create PyTorch DataLoader"""
+def create_dataloader(features, labels, batch_size, seed, mask=None):
+    """Split into train/val sets and create PyTorch DataLoader
+
+    Args:
+        features (torch.Tensor): Data features used for training
+        labels (torch.Tensor): Corresponding labels for the features
+        batch_size (int): Number of samples in each batch before weight update step
+        seed (int): Integer for setting PyTorch random seed
+        mask (torch.Tensor, optional): Boolean mask to apply to features/labels. Defaults to None.
+
+    Returns:
+        torch.utils.data.DataLoader: Dataloaders for training and val sets
+    """
     # Split into train/val sets
-    rng = torch.Generator().manual_seed(21)
+    rng = torch.Generator().manual_seed(seed)
 
     if isinstance(mask, torch.Tensor):
         # Split data based on provided mask
