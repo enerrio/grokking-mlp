@@ -170,7 +170,7 @@ def main():
         num_params = sum([x.numel() for x in net.parameters()])
         print(f"Number of parameters in model: {num_params:,}")
 
-        # Train
+        # Train model
         start = time.time()
         train_stats[f"seed_{seed}"] = train_loop(
             net,
