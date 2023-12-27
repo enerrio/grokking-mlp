@@ -1,8 +1,9 @@
-from tqdm.auto import tqdm
+from tqdm.auto import tqdm  # type: ignore
+from typing import Dict, List, Union, Any
 import time
-import yaml
+import yaml  # type: ignore
 import numpy as np
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA  # type: ignore
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -11,7 +12,7 @@ from net import MLP, layer_norm
 from plot import plot_train_results, plot_weights
 
 
-def load_config(file_path):
+def load_config(file_path: str) -> Dict[str, Any]:
     """Load YAML config file"""
     with open(file_path, "r") as f:
         config = yaml.safe_load(f)
@@ -19,15 +20,15 @@ def load_config(file_path):
 
 
 def train_loop(
-    net,
-    optimizer,
-    criterion,
-    num_epochs,
-    train_dataloader,
-    val_dataloader,
-    log_epoch,
-    device,
-):
+    net: nn.Module,
+    optimizer: optim.Optimizer,
+    criterion: nn.Module,
+    num_epochs: int,
+    train_dataloader: torch.utils.data.DataLoader,
+    val_dataloader: torch.utils.data.DataLoader,
+    log_epoch: int,
+    device: torch.device,
+) -> Dict[str, List[Union[float, torch.Tensor]]]:
     """Train a provided model for a given number of epochs
 
     Args:
@@ -43,7 +44,7 @@ def train_loop(
     Returns:
         dict: Statistics for the training run
     """
-    train_stats = {
+    train_stats: Dict[str, Any] = {
         "epoch_train_losses": [],
         "epoch_train_accs": [],
         "epoch_val_losses": [],
@@ -97,9 +98,9 @@ def train_loop(
                 total_val_loss += val_loss.item()
 
         # Store epoch-level loss + accuracy
-        epoch_acc = (total_correct / len(train_dataloader.dataset)) * 100.0
+        epoch_acc = (total_correct / len(train_dataloader.dataset)) * 100.0  # type: ignore
         epoch_loss = total_loss / len(train_dataloader)
-        val_acc = (total_val_correct / len(val_dataloader.dataset)) * 100.0
+        val_acc = (total_val_correct / len(val_dataloader.dataset)) * 100.0  # type: ignore
         val_epoch_loss = total_val_loss / len(val_dataloader)
         train_stats["epoch_train_accs"].append(epoch_acc)
         train_stats["epoch_train_losses"].append(epoch_loss)
@@ -120,7 +121,7 @@ def train_loop(
     return train_stats
 
 
-def main():
+def main() -> None:
     # Load config
     config = load_config("config.yaml")
     device = torch.device(config["device"])
@@ -151,8 +152,8 @@ def main():
         )
         print(f"Running experiment for random seed: {seed}")
         print(f"Total samples in dataset: {features.shape[0]:,}")
-        print(f"Total samples in train set: {len(train_dataloader.dataset):,}")
-        print(f"Total samples in val set: {len(val_dataloader.dataset):,}")
+        print(f"Total samples in train set: {len(train_dataloader.dataset):,}")  # type: ignore
+        print(f"Total samples in val set: {len(val_dataloader.dataset):,}")  # type: ignore
 
         print(f"Total number of batches in train dataloader: {len(train_dataloader):,}")
         print(f"Total number of batches in val dataloader: {len(val_dataloader):,}")
@@ -210,7 +211,7 @@ def main():
     plot_weights(
         embed_wt_reduced,
         output_wt_reduced,
-        features[features[:, 2] == 8][:, 0],  # Overlay X from equation X + 8
+        features[features[:, 2] == 8][:, 0].numpy(),  # Overlay X from equation X + 8
         char2idx,
         config["plot"]["save_plots"],
         config["experiment_name"],

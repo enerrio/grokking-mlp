@@ -1,6 +1,6 @@
 import os
 import numpy as np
-import plotly.graph_objects as go
+import plotly.graph_objects as go  # type: ignore
 
 TRAIN_LINE_COLOR = "rgb(101,110,242)"
 TRAIN_FILL_COLOR = "rgba(101,110,242,0.2)"
@@ -11,7 +11,7 @@ LAYER_NORM_LINE_COLOR = "rgb(128,213,186)"
 LAYER_NORM_FILL_COLOR = "rgb(128,213,186,0.2)"
 
 
-def plot_train_results(train_stats, save, save_path):
+def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
     """Plot the loss curve and accuracy for a training run"""
     # Calculate loss mean and standard deviation
     stacked_train_losses = np.stack(
@@ -246,8 +246,13 @@ def plot_train_results(train_stats, save, save_path):
 
 
 def plot_weights(
-    embed_wt_reduced, output_wt_reduced, output_wt_text, char2idx, save, save_path
-):
+    embed_wt_reduced: np.ndarray,
+    output_wt_reduced: np.ndarray,
+    output_wt_text: np.ndarray,
+    char2idx: dict,
+    save: bool,
+    save_path: str,
+) -> None:
     """Plot layer weights after reducing dimensions"""
     fig_weights = go.Figure()
     fig_weights.add_scatter(
