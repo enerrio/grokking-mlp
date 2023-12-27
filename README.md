@@ -20,12 +20,15 @@ The jupyter notebook `grokking-modadd.ipynb` is a playground notebook for buildi
 * **exp2**: Randomly split data into train and val set. Train over 20k epochs
 * **exp3**: Split data based on label (val set composed of data samples with labels 1 and 2). Train over 20k epochs
   * This is to see if the model will still grok (generalize) if it does not see certain data points. In other words, if it never sees any examples where the answer is between 0 and 20, will it still learn the true underlying equation? Or will it learn a variant of it that works for the other labels.
+* **exp4**: Training on 5 exps
+  * Total experiment run time (cpu): ~45 minutes
 
 TODO:
-- [ ] Have each experiment run 5x on different random seeds
+- [x] Have each experiment run 5x on different random seeds
 - [ ] Track norm of weights for last layer. see if they are cyclic per apple research paper. A sharp phase transition should happen when the **model misclassifies training samples**. It is accompanied by a sudden spike in training loss.
 - [ ] Maybe try increasing norm of last layer after loss plateaus to encourage grokking earlier?
 - [ ] Plot the weight updates per epoch to see "speed" of learning during early stage of training, plateau stage, and grokking stage.
+- [ ] add type hinting
 
 ## Plots
 
