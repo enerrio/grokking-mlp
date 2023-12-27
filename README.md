@@ -28,7 +28,7 @@ TODO:
 - [ ] Track norm of weights for last layer. see if they are cyclic per apple research paper. A sharp phase transition should happen when the **model misclassifies training samples**. It is accompanied by a sudden spike in training loss.
 - [ ] Maybe try increasing norm of last layer after loss plateaus to encourage grokking earlier?
 - [ ] Plot the weight updates per epoch to see "speed" of learning during early stage of training, plateau stage, and grokking stage.
-- [ ] add type hinting
+- [x] add type hinting
 
 ## Plots
 
