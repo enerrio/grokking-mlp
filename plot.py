@@ -7,6 +7,8 @@ TRAIN_FILL_COLOR = "rgba(101,110,242,0.2)"
 VAL_LINE_COLOR = "rgb(221,96,70)"
 VAL_FILL_COLOR = "rgba(221,96,70,0.2)"
 CLEAR_LINE_COLOR = "rgba(255,255,255,0)"
+LAYER_NORM_LINE_COLOR = "rgb(128,213,186)"
+LAYER_NORM_FILL_COLOR = "rgb(128,213,186,0.2)"
 
 
 def plot_train_results(train_stats, save, save_path):
@@ -18,10 +20,15 @@ def plot_train_results(train_stats, save, save_path):
     stacked_val_losses = np.stack(
         [train_stats[seed]["epoch_val_losses"] for seed in train_stats]
     )
+    stacked_layer_norms = np.stack(
+        [train_stats[seed]["epoch_layer_norm"] for seed in train_stats]
+    )
     mean_train_loss = np.mean(stacked_train_losses, axis=0)
     std_train_loss = np.std(stacked_train_losses, axis=0)
     mean_val_loss = np.mean(stacked_val_losses, axis=0)
     std_val_loss = np.std(stacked_val_losses, axis=0)
+    mean_layer_norm = np.mean(stacked_layer_norms, axis=0)
+    std_layer_norm = np.std(stacked_layer_norms, axis=0)
     epochs = np.arange(stacked_train_losses.shape[-1])
 
     fig_loss = go.Figure()
@@ -64,13 +71,23 @@ def plot_train_results(train_stats, save, save_path):
         marker=dict(color=VAL_LINE_COLOR),
         name="Val Loss",
     )
-
-    # TODO: TEST plotting layer norm
-    # fig_loss.add_scatter(
-    #     x=np.arange(len(train_stats["epoch_layer_norm"])),
-    #     y=train_stats["epoch_layer_norm"],
-    #     name="Output layer norm",
-    # )
+    # Plot mean layer norms + confidence interval areas
+    fig_loss.add_scatter(
+        x=np.concatenate([epochs, epochs[::-1]]),
+        y=np.concatenate(
+            [mean_layer_norm - std_layer_norm, (mean_layer_norm + std_layer_norm)[::-1]]
+        ),
+        fill="toself",
+        fillcolor=LAYER_NORM_FILL_COLOR,
+        line=dict(color=CLEAR_LINE_COLOR),
+        name="Output Layer Norm Confidence Interval",
+    )
+    fig_loss.add_scatter(
+        x=epochs,
+        y=mean_layer_norm,
+        marker=dict(color=LAYER_NORM_LINE_COLOR),
+        name="Output Layer Norm",
+    )
     # Add buttons for scaling axis
     updatemenus_loss = [
         dict(
@@ -106,7 +123,7 @@ def plot_train_results(train_stats, save, save_path):
         yaxis_title_text="loss",
     )
 
-    # Calculate loss mean and standard deviation
+    # Calculate accuracy mean and standard deviation
     stacked_train_accs = np.stack(
         [train_stats[seed]["epoch_train_accs"] for seed in train_stats]
     )
@@ -125,10 +142,7 @@ def plot_train_results(train_stats, save, save_path):
         x=np.concatenate([epochs, epochs[::-1]]),
         y=np.concatenate(
             [mean_train_acc - std_train_acc, (mean_train_acc + std_train_acc)[::-1]]
-        ),
-        # ).clip(
-        #     0, 100
-        # ),
+        ).clip(0, 100),
         fill="toself",
         fillcolor=TRAIN_FILL_COLOR,
         line=dict(color=CLEAR_LINE_COLOR),
@@ -138,10 +152,7 @@ def plot_train_results(train_stats, save, save_path):
         x=np.concatenate([epochs, epochs[::-1]]),
         y=np.concatenate(
             [mean_val_acc - std_val_acc, (mean_val_acc + std_val_acc)[::-1]]
-        ),
-        # ).clip(
-        #     0, 100
-        # ),
+        ).clip(0, 100),
         fill="toself",
         fillcolor=VAL_FILL_COLOR,
         line=dict(color=CLEAR_LINE_COLOR),
@@ -161,13 +172,23 @@ def plot_train_results(train_stats, save, save_path):
         marker=dict(color=VAL_LINE_COLOR),
         name="Val Accuracy",
     )
-
-    # TODO: test plotting layer norm
-    # fig_acc.add_scatter(
-    #     x=np.arange(len(train_stats["epoch_layer_norm"])),
-    #     y=train_stats["epoch_layer_norm"],
-    #     name="Output layer norm",
-    # )
+    # Plot mean layer norms + confidence interval areas
+    fig_acc.add_scatter(
+        x=np.concatenate([epochs, epochs[::-1]]),
+        y=np.concatenate(
+            [mean_layer_norm - std_layer_norm, (mean_layer_norm + std_layer_norm)[::-1]]
+        ),
+        fill="toself",
+        fillcolor=LAYER_NORM_FILL_COLOR,
+        line=dict(color=CLEAR_LINE_COLOR),
+        name="Output Layer Norm Confidence Interval",
+    )
+    fig_acc.add_scatter(
+        x=epochs,
+        y=mean_layer_norm,
+        marker=dict(color=LAYER_NORM_LINE_COLOR),
+        name="Output Layer Norm",
+    )
     # Add buttons for scaling axis
     updatemenus_acc = [
         dict(
