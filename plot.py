@@ -8,7 +8,7 @@ VAL_LINE_COLOR = "rgb(221,96,70)"
 VAL_FILL_COLOR = "rgba(221,96,70,0.2)"
 CLEAR_LINE_COLOR = "rgba(255,255,255,0)"
 LAYER_NORM_LINE_COLOR = "rgb(128,213,186)"
-LAYER_NORM_FILL_COLOR = "rgb(128,213,186,0.2)"
+LAYER_NORM_FILL_COLOR = "rgba(128,213,186,0.2)"
 
 
 def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
@@ -33,7 +33,7 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
 
     fig_loss = go.Figure()
 
-    # Add loss confidence interval areas
+    # Plot loss confidence interval areas
     fig_loss.add_scatter(
         x=np.concatenate([epochs, epochs[::-1]]),
         y=np.concatenate(
@@ -58,7 +58,7 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
         line=dict(color=CLEAR_LINE_COLOR),
         name="Val Confidence Interval",
     )
-    # Plot mean loss curve
+    # Plot mean loss curve + loss curves for all random seeds
     fig_loss.add_scatter(
         x=epochs,
         y=mean_train_loss,
@@ -71,7 +71,24 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
         marker=dict(color=VAL_LINE_COLOR),
         name="Val Loss",
     )
-    # Plot mean layer norms + confidence interval areas
+    for seed in train_stats:
+        fig_loss.add_scatter(
+            x=epochs,
+            y=train_stats[seed]["epoch_train_losses"],
+            marker=dict(color=TRAIN_LINE_COLOR),
+            name=f"Train {seed}",
+            opacity=0.3,
+            showlegend=False,
+        )
+        fig_loss.add_scatter(
+            x=epochs,
+            y=train_stats[seed]["epoch_val_losses"],
+            marker=dict(color=VAL_LINE_COLOR),
+            name=f"Val {seed}",
+            opacity=0.3,
+            showlegend=False,
+        )
+    # Plot mean layer norms
     fig_loss.add_scatter(
         x=np.concatenate([epochs, epochs[::-1]]),
         y=np.concatenate(
@@ -137,7 +154,7 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
 
     fig_acc = go.Figure()
 
-    # Add accuracy confidence interval areas
+    # Plot accuracy confidence interval areas
     fig_acc.add_scatter(
         x=np.concatenate([epochs, epochs[::-1]]),
         y=np.concatenate(
@@ -158,8 +175,7 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
         line=dict(color=CLEAR_LINE_COLOR),
         name="Val Confidence Interval",
     )
-
-    # Plot accuracy
+    # Plot train + val accuracy
     fig_acc.add_scatter(
         x=epochs,
         y=mean_train_acc,
@@ -172,7 +188,24 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
         marker=dict(color=VAL_LINE_COLOR),
         name="Val Accuracy",
     )
-    # Plot mean layer norms + confidence interval areas
+    for seed in train_stats:
+        fig_acc.add_scatter(
+            x=epochs,
+            y=train_stats[seed]["epoch_train_accs"],
+            marker=dict(color=TRAIN_LINE_COLOR),
+            name=f"Train {seed}",
+            opacity=0.3,
+            showlegend=False,
+        )
+        fig_acc.add_scatter(
+            x=epochs,
+            y=train_stats[seed]["epoch_val_accs"],
+            marker=dict(color=VAL_LINE_COLOR),
+            name=f"Val {seed}",
+            opacity=0.3,
+            showlegend=False,
+        )
+    # Plot mean layer norms
     fig_acc.add_scatter(
         x=np.concatenate([epochs, epochs[::-1]]),
         y=np.concatenate(
