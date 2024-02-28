@@ -1,22 +1,15 @@
 from tqdm.auto import tqdm  # type: ignore
 from typing import Dict, List, Union, Any
 import time
-import yaml  # type: ignore
 import numpy as np
 from sklearn.decomposition import PCA  # type: ignore
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from utils import load_config, calculate_sparsity
 from data import create_data, create_dataloader, convert_to_str
 from net import MLP, layer_norm
 from plot import plot_train_results, plot_weights
-
-
-def load_config(file_path: str) -> Dict[str, Any]:
-    """Load YAML config file"""
-    with open(file_path, "r") as f:
-        config = yaml.safe_load(f)
-    return config
 
 
 def train_loop(
@@ -26,6 +19,7 @@ def train_loop(
     num_epochs: int,
     train_dataloader: torch.utils.data.DataLoader,
     val_dataloader: torch.utils.data.DataLoader,
+    sparsity_threshold: float,
     log_epoch: int,
     device: torch.device,
 ) -> Dict[str, List[Union[float, torch.Tensor]]]:
@@ -38,6 +32,7 @@ def train_loop(
         num_epochs (int): Total number of epochs to train for
         train_dataloader (torch.utils.data.DataLoader): Dataloader for supplying training data to model
         val_dataloader (torch.utils.data.DataLoader): Dataloader for supplying validation data to model
+        sparsity_threshold (float): Threshold to user when calculating network sparsity
         log_epoch (int): Every X epochs log training statistics
         device (torch.device): Device that data and model should move to while training
 
@@ -50,6 +45,7 @@ def train_loop(
         "epoch_val_losses": [],
         "epoch_val_accs": [],
         "epoch_layer_norm": [],
+        "epoch_sparsity": [],
     }
     step = 0
     for epoch in tqdm(range(num_epochs)):
@@ -107,6 +103,9 @@ def train_loop(
         train_stats["epoch_val_accs"].append(val_acc)
         train_stats["epoch_val_losses"].append(val_epoch_loss)
         train_stats["epoch_layer_norm"].append(layer_norm(net))
+
+        sparsity = calculate_sparsity(net, sparsity_threshold) * 100.0
+        train_stats["epoch_sparsity"].append(sparsity)
 
         # Log losses every X epochs
         if (epoch % log_epoch) == 0:
@@ -180,6 +179,7 @@ def main() -> None:
             config["model"]["num_epochs"],
             train_dataloader,
             val_dataloader,
+            config["sparsity"]["threshold"],
             config["model"]["log_epoch"],
             device,
         )
@@ -188,7 +188,7 @@ def main() -> None:
         f"Total training time (all seeds): {(time.time()-start_exps)/60.:.2f} minutes"
     )
 
-    # Plot train run
+    # Plot train run statistics
     plot_train_results(
         train_stats,
         config["plot"]["save_plots"],

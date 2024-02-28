@@ -8,11 +8,13 @@ The jupyter notebook `grokking-modadd.ipynb` is a playground notebook for buildi
 
 ## File Descriptions
 
-* config.yaml: Configuration file for setting hyperparameters
-* data.py: Creates synthetic datasets
+* config.yaml: Configuration file for setting hyperparameters. See section below for what each config key is used for
+* data.py: Creates synthetic datasets and dataloaders
 * net.py: Defines the neural network architecture and set up loss function and optimizer
 * plot.py: Contains helper functions for creating plots
 * train.py: Main script used to train models and record results
+* utils.py: Contains helper functions for main train.py script
+* sparsity.py: Loads a model from a previous experiment, calculates its sparsity, and evaluates on a training and validation dataset
 
 ## Experiment List
 
@@ -22,6 +24,11 @@ The jupyter notebook `grokking-modadd.ipynb` is a playground notebook for buildi
   * This is to see if the model will still grok (generalize) if it does not see certain data points. In other words, if it never sees any examples where the answer is between 0 and 20, will it still learn the true underlying equation? Or will it learn a variant of it that works for the other labels.
 * **exp4**: Training on 5 random seeds and averaging results in plot. Train over 20k epochs.
   * Total experiment run time (cpu): ~45 minutes
+* **exp5**: Training on 5 random seeds (same as exp4) but with model sparsity included in accuracy plot (scale between 0 and 100 where value represents % of network weights that are below some threshold, in this case 0.01). This is to explore the idea of there being dense subnetworks within the model and sparse subnetworks after grokking happens per `A Tale of Two Circuits` paper i.e. does model sparsity increase after grokking happens? For a model that achieves grokking and has a high sparsity, does the model still perform perfectly on the train and val datasets when those sparse weights are pruned (set to 0)?
+  * Model sparsity can be viewed as weights whose values are so small (below some threshold) that they do not significantly contribute to the model's predictive power.
+  * ~37% of model weights are below the 0.01 threshold. After pruning (setting those weights to 0) the model still achieves perfect accuracy on a train/val data splits
+  * Total experiment run time (cpu): ~94 minutes
+
 
 TODO:
 - [x] Have each experiment run 5x on different random seeds
@@ -50,6 +57,8 @@ There is a config file which controls most of the settings for each experiment. 
   * betas: Betas to use for AdamW optimizer
 * plot:
   * save_plots: Whether to save plots to png files or not
+* sparsity:
+  * threshold: Value to use when calculating network sparsity. In this context, sparsity is the fraction of model weights whose absolute values are below this threshold
 
 ## Plots
 

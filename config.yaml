@@ -1,5 +1,5 @@
-experiment_name: exp4
-device: cpu
+experiment_name: exp5
+device: cpu  # cpu, cuda, mps
 data:
   p: 97
   operation: +
@@ -14,3 +14,5 @@ optim:
   betas: [0.9, 0.98]
 plot:
   save_plots: True
+sparsity:
+  threshold: 0.01

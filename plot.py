@@ -9,6 +9,8 @@ VAL_FILL_COLOR = "rgba(221,96,70,0.2)"
 CLEAR_LINE_COLOR = "rgba(255,255,255,0)"
 LAYER_NORM_LINE_COLOR = "rgb(128,213,186)"
 LAYER_NORM_FILL_COLOR = "rgba(128,213,186,0.2)"
+SPARSITY_LINE_COLOR = "rgb(239,172,79)"
+SPARSITY_FILL_COLOR = "rgba(239,172,79,0.2)"
 
 
 def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
@@ -32,7 +34,6 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
     epochs = np.arange(stacked_train_losses.shape[-1])
 
     fig_loss = go.Figure()
-
     # Plot loss confidence interval areas
     fig_loss.add_scatter(
         x=np.concatenate([epochs, epochs[::-1]]),
@@ -140,21 +141,26 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
         yaxis_title_text="loss",
     )
 
-    # Calculate accuracy mean and standard deviation
+    # Calculate accuracy + sparsity mean and standard deviation
     stacked_train_accs = np.stack(
         [train_stats[seed]["epoch_train_accs"] for seed in train_stats]
     )
     stacked_val_accs = np.stack(
         [train_stats[seed]["epoch_val_accs"] for seed in train_stats]
     )
+    stacked_sparsity = np.stack(
+        [train_stats[seed]["epoch_sparsity"] for seed in train_stats]
+    )
+
     mean_train_acc = np.mean(stacked_train_accs, axis=0)
     std_train_acc = np.std(stacked_train_accs, axis=0)
     mean_val_acc = np.mean(stacked_val_accs, axis=0)
     std_val_acc = np.std(stacked_val_accs, axis=0)
+    mean_sparsity = np.mean(stacked_sparsity, axis=0)
+    std_sparsity = np.std(stacked_sparsity, axis=0)
 
     fig_acc = go.Figure()
-
-    # Plot accuracy confidence interval areas
+    # Plot accuracy + sparsity confidence interval areas
     fig_acc.add_scatter(
         x=np.concatenate([epochs, epochs[::-1]]),
         y=np.concatenate(
@@ -175,7 +181,17 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
         line=dict(color=CLEAR_LINE_COLOR),
         name="Val Confidence Interval",
     )
-    # Plot train + val accuracy
+    fig_acc.add_scatter(
+        x=np.concatenate([epochs, epochs[::-1]]),
+        y=np.concatenate(
+            [mean_sparsity - std_sparsity, (mean_sparsity + std_sparsity)[::-1]]
+        ).clip(0, 100),
+        fill="toself",
+        fillcolor=SPARSITY_FILL_COLOR,
+        line=dict(color=CLEAR_LINE_COLOR),
+        name="Sparsity Confidence Interval",
+    )
+    # Plot train + val accuracy + sparsity
     fig_acc.add_scatter(
         x=epochs,
         y=mean_train_acc,
@@ -187,6 +203,12 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
         y=mean_val_acc,
         marker=dict(color=VAL_LINE_COLOR),
         name="Val Accuracy",
+    )
+    fig_acc.add_scatter(
+        x=epochs,
+        y=mean_sparsity,
+        marker=dict(color=SPARSITY_LINE_COLOR),
+        name="Model Sparsity",
     )
     for seed in train_stats:
         fig_acc.add_scatter(
@@ -202,6 +224,14 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
             y=train_stats[seed]["epoch_val_accs"],
             marker=dict(color=VAL_LINE_COLOR),
             name=f"Val {seed}",
+            opacity=0.3,
+            showlegend=False,
+        )
+        fig_acc.add_scatter(
+            x=epochs,
+            y=train_stats[seed]["epoch_sparsity"],
+            marker=dict(color=SPARSITY_LINE_COLOR),
+            name=f"Sparsity {seed}",
             opacity=0.3,
             showlegend=False,
         )
