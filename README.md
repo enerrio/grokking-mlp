@@ -28,6 +28,8 @@ The jupyter notebook `grokking-modadd.ipynb` is a playground notebook for buildi
   * Model sparsity can be viewed as weights whose values are so small (below some threshold) that they do not significantly contribute to the model's predictive power.
   * ~37% of model weights are below the 0.01 threshold. After pruning (setting those weights to 0) the model still achieves perfect accuracy on a train/val data splits
   * Total experiment run time (cpu): ~94 minutes
+* **exp6**: Repeat of exp5 but with extra plots showing number of active weights per epoch after pruning.
+  * Total experiment run time (cpu): ~90 minutes
 
 
 TODO:
