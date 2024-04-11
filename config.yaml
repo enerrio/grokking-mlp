@@ -1,4 +1,4 @@
-experiment_name: exp5
+experiment_name: exp6
 device: cpu  # cpu, cuda, mps
 data:
   p: 97
