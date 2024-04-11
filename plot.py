@@ -13,7 +13,9 @@ SPARSITY_LINE_COLOR = "rgb(239,172,79)"
 SPARSITY_FILL_COLOR = "rgba(239,172,79,0.2)"
 
 
-def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
+def plot_train_results(
+    train_stats: dict, save: bool, save_path: str, num_params: int
+) -> None:
     """Plot the loss curve and accuracy for a training run"""
     # Calculate loss mean and standard deviation
     stacked_train_losses = np.stack(
@@ -288,6 +290,65 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
         yaxis_title_text="accuracy",
     )
 
+    # Plot active neurons
+    stacked_train_active_weights = np.stack(
+        [train_stats[seed]["epoch_active_weights"] for seed in train_stats]
+    )
+    mean_active_weights = np.mean(stacked_train_active_weights, axis=0)
+    std_active_weights = np.std(stacked_train_active_weights, axis=0)
+
+    fig_weights = go.Figure()
+    # Plot CI area
+    fig_weights.add_scatter(
+        x=np.concatenate([epochs, epochs[::-1]]),
+        y=np.concatenate(
+            [
+                mean_active_weights - std_active_weights,
+                (mean_active_weights + std_active_weights)[::-1],
+            ]
+        ),
+        fill="toself",
+        fillcolor=TRAIN_FILL_COLOR,
+        line=dict(color=CLEAR_LINE_COLOR),
+        hovertemplate="epoch: %{x}<br>num weights: %{y:,}",
+        name="Confidence Interval",
+    )
+    # Plot solid line representing total weights
+    fig_weights.add_scatter(
+        x=epochs,
+        y=[num_params] * len(epochs),
+        marker=dict(color=VAL_LINE_COLOR),
+        line=dict(color=VAL_LINE_COLOR, dash="dash"),
+        hovertemplate="epoch: %{x}<br>num weights: %{y:,}",
+        name="Num Weights",
+    )
+    # Plot mean active weights
+    fig_weights.add_scatter(
+        x=epochs,
+        y=mean_active_weights,
+        marker=dict(color=TRAIN_LINE_COLOR),
+        hovertemplate="epoch: %{x}<br>num weights: %{y:,}",
+        name="Num Active Weights",
+    )
+    for seed in train_stats:
+        fig_weights.add_scatter(
+            x=epochs,
+            y=train_stats[seed]["epoch_active_weights"],
+            marker=dict(color=TRAIN_LINE_COLOR),
+            hovertemplate="epoch: %{x}<br>num weights: %{y:,}",
+            name=f"Train {seed}",
+            opacity=0.3,
+            showlegend=False,
+        )
+    fig_weights.update_layout(
+        height=700,
+        width=1000,
+        title_text="Mean Active Weights with Confidence Interval",
+        title_x=0.5,
+        xaxis_title_text="epoch",
+        yaxis_title_text="num weights",
+    )
+
     if save:
         os.makedirs(save_path, exist_ok=True)
         # save loss plots
@@ -300,12 +361,15 @@ def plot_train_results(train_stats: dict, save: bool, save_path: str) -> None:
         fig_acc.write_image(f"{save_path}/acclog.png")
         fig_acc.update_layout(xaxis_type="linear")
         fig_acc.write_image(f"{save_path}/acclinear.png")
+        # save active weights plot
+        fig_weights.write_image(f"{save_path}/wtslinear.png")
 
     # Update layouts and show in browser
     fig_loss.update_layout(updatemenus=updatemenus_loss)
     fig_acc.update_layout(updatemenus=updatemenus_acc)
     fig_loss.show()
     fig_acc.show()
+    fig_weights.show()
 
 
 def plot_weights(

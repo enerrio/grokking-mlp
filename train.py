@@ -46,6 +46,7 @@ def train_loop(
         "epoch_val_accs": [],
         "epoch_layer_norm": [],
         "epoch_sparsity": [],
+        "epoch_active_weights": [],
     }
     step = 0
     for epoch in tqdm(range(num_epochs)):
@@ -104,8 +105,9 @@ def train_loop(
         train_stats["epoch_val_losses"].append(val_epoch_loss)
         train_stats["epoch_layer_norm"].append(layer_norm(net))
 
-        sparsity = calculate_sparsity(net, sparsity_threshold) * 100.0
-        train_stats["epoch_sparsity"].append(sparsity)
+        sparsity_ratio, active_weights = calculate_sparsity(net, sparsity_threshold)
+        train_stats["epoch_sparsity"].append(sparsity_ratio * 100.0)
+        train_stats["epoch_active_weights"].append(active_weights)
 
         # Log losses every X epochs
         if (epoch % log_epoch) == 0:
@@ -193,6 +195,7 @@ def main() -> None:
         train_stats,
         config["plot"]["save_plots"],
         config["experiment_name"],
+        num_params,
     )
 
     print(

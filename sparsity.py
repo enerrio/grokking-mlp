@@ -14,9 +14,14 @@ def main() -> None:
     net = MLP(vocab_size)
     net.load_state_dict(torch.load(f"{config['experiment_name']}/model_wts.pth"))
     net = net.to(device)
+    num_params = sum([x.numel() for x in net.parameters()])
     # calculate sparsity
-    sparsity = calculate_sparsity(net, config["sparsity"]["threshold"])
-    print(f"Model sparsity: {sparsity:.2%}")
+    sparsity_ratio, active_weights = calculate_sparsity(
+        net, config["sparsity"]["threshold"]
+    )
+    print(f"Model sparsity: {sparsity_ratio:.2%}")
+    print(f"Total number of weights: {num_params:,}")
+    print(f"Total number of active weights: {active_weights:,}")
     # prune model
     pruned_net = prune_network(net, config["sparsity"]["threshold"])
     # evaluate on train/val datasets

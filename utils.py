@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 import yaml  # type: ignore
 import torch
 import torch.nn as nn
@@ -11,7 +11,7 @@ def load_config(file_path: str) -> Dict[str, Any]:
     return config
 
 
-def calculate_sparsity(net: nn.Module, threshold: float) -> float:
+def calculate_sparsity(net: nn.Module, threshold: float) -> Tuple[float, int]:
     """Calculate how sparse a given model is (0 is fully dense, 1 is fully sparse)
 
     Args:
@@ -19,7 +19,7 @@ def calculate_sparsity(net: nn.Module, threshold: float) -> float:
         threshold (float): Threshold value to define if a weight is sparse or not
 
     Returns:
-        float: Sparsity ratio i.e. how many weights in net are below threshold
+        tuple[float, int]: Sparsity ratio i.e. how many weights in net are below threshold and total number of non-sparse weights
     """
     sparse_count = 0
     total_count = 0
@@ -28,7 +28,8 @@ def calculate_sparsity(net: nn.Module, threshold: float) -> float:
         total_count += param.numel()
 
     sparsity_ratio = sparse_count / total_count
-    return sparsity_ratio
+    active_weights = total_count - sparse_count
+    return sparsity_ratio, active_weights
 
 
 def prune_network(net: nn.Module, threshold: float) -> nn.Module:
